@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	SytaxError = errors.New("syntax error")
+	ErrInvalidSyntax = errors.New("syntax error")
 )
 
 type Parser struct {
@@ -66,19 +66,19 @@ func (p *Parser) Parse() (*ast.Program, error) {
 			exprs = expr.Body
 		case lexer.WhileEndToken:
 			if len(stack) == 1 {
-				return nil, fmt.Errorf("%w: unexpected token %c at %d", SytaxError, token.Byte, token.Pos)
+				return nil, fmt.Errorf("%w: unexpected token %c at %d", ErrInvalidSyntax, token.Byte, token.Pos)
 			}
 			body := exprs
 			exprs = stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
 
 			if len(exprs) == 0 {
-				return nil, fmt.Errorf("%w: empty while block at %d", SytaxError, token.Pos)
+				return nil, fmt.Errorf("%w: empty while block at %d", ErrInvalidSyntax, token.Pos)
 			}
 
 			expr := exprs[len(exprs)-1]
 			if we, ok := expr.(*ast.WhileExpression); !ok {
-				return nil, fmt.Errorf("%w: unexpected token %c at %d", SytaxError, token.Byte, token.Pos)
+				return nil, fmt.Errorf("%w: unexpected token %c at %d", ErrInvalidSyntax, token.Byte, token.Pos)
 			} else {
 				we.EndPosition = token.Pos
 				we.Body = body
@@ -87,7 +87,7 @@ func (p *Parser) Parse() (*ast.Program, error) {
 	}
 
 	if len(stack) != 1 {
-		return nil, fmt.Errorf("%w: unclosed while block", SytaxError)
+		return nil, fmt.Errorf("%w: unclosed while block", ErrInvalidSyntax)
 	}
 
 	return &ast.Program{
