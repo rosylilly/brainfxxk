@@ -34,6 +34,7 @@ func Run(ctx context.Context, s io.Reader, c *Config) error {
 func NewInterpreter(p *ast.Program, c *Config) *Interpreter {
 	return &Interpreter{
 		Program: p,
+		Config:  c,
 		Memory:  make([]byte, c.MemorySize),
 		Pointer: 0,
 	}
