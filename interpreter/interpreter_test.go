@@ -57,7 +57,12 @@ func TestInterpreter(t *testing.T) {
 		t.Run(tc.source, func(t *testing.T) {
 			r := strings.NewReader(tc.input)
 			w := &bytes.Buffer{}
-			if err := interpreter.Run(ctx, strings.NewReader(tc.source), w, r); err != nil {
+			c := &interpreter.Config{
+				Writer:     w,
+				Reader:     r,
+				MemorySize: 30000,
+			}
+			if err := interpreter.Run(ctx, strings.NewReader(tc.source), c); err != nil {
 				t.Fatal(err)
 			}
 
@@ -83,7 +88,13 @@ func TestInterpreterInfinityRead(t *testing.T) {
 	ir := &infinityReader{}
 	w := &bytes.Buffer{}
 
-	err := interpreter.Run(ctx, strings.NewReader(source), w, ir)
+	c := &interpreter.Config{
+		Writer:     w,
+		Reader:     ir,
+		MemorySize: 30000,
+	}
+
+	err := interpreter.Run(ctx, strings.NewReader(source), c)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("got: %v, expected: %v", err, context.DeadlineExceeded)
 	}
