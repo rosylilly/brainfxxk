@@ -153,3 +153,25 @@ func (e *WhileExpression) Bytes() []byte {
 func (e *WhileExpression) String() string {
 	return string(e.Bytes())
 }
+
+type Comment struct {
+	Start int
+	End   int
+	Body  []byte
+}
+
+func (c *Comment) StartPos() int {
+	return c.Start
+}
+
+func (c *Comment) EndPos() int {
+	return c.End
+}
+
+func (c *Comment) Bytes() []byte {
+	return c.Body
+}
+
+func (c *Comment) String() string {
+	return string(c.Body)
+}

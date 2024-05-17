@@ -83,6 +83,18 @@ func (p *Parser) Parse() (*ast.Program, error) {
 				we.EndPosition = token.Pos
 				we.Body = body
 			}
+		case lexer.CommentToken:
+			var expr ast.Expression
+			if len(exprs) > 0 {
+				expr = exprs[len(exprs)-1]
+			}
+
+			if cm, ok := expr.(*ast.Comment); !ok {
+				exprs = append(exprs, &ast.Comment{Start: token.Pos, End: token.Pos, Body: []byte{token.Byte}})
+			} else {
+				cm.Body = append(cm.Body, token.Byte)
+				cm.End = token.Pos
+			}
 		}
 	}
 
