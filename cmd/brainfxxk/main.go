@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/rosylilly/brainfxxk/interpreter"
 )
@@ -48,6 +49,11 @@ func main() {
 		source = fp
 	}
 	defer source.Close()
+
+	before := time.Now()
+	defer func() {
+		fmt.Printf("\nelapsed: %v", time.Since(before))
+	}()
 
 	if err := interpreter.Run(ctx, source, config); err != nil {
 		log.Fatal(err)

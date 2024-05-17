@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/rosylilly/brainfxxk/ast"
+	"github.com/rosylilly/brainfxxk/optimizer"
 	"github.com/rosylilly/brainfxxk/parser"
 )
 
@@ -41,8 +42,12 @@ func NewInterpreter(p *ast.Program, c *Config) *Interpreter {
 }
 
 func (i *Interpreter) Run(ctx context.Context) error {
-	err := i.runExpressions(ctx, i.Program.Expressions)
+	p, err := optimizer.NewOptimizer().Optimize(i.Program)
+	if err != nil {
+		return err
+	}
 
+	err = i.runExpressions(ctx, p.Expressions)
 	if errors.Is(err, ErrInputFinished) && !i.Config.RaiseErrorOnEOF {
 		return nil
 	}
