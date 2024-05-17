@@ -52,7 +52,7 @@ func main() {
 
 	before := time.Now()
 	defer func() {
-		fmt.Printf("\nelapsed: %v", time.Since(before))
+		fmt.Printf("\nelapsed: %v\n", time.Since(before))
 	}()
 
 	if err := interpreter.Run(ctx, source, config); err != nil {

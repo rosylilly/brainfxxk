@@ -1,6 +1,7 @@
 package optimizer_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -9,15 +10,26 @@ import (
 )
 
 func TestOptimizer(t *testing.T) {
-	source := "++>>>++"
-
-	p, err := parser.Parse(strings.NewReader(source))
-	if err != nil {
-		t.Fatal(err)
+	testCases := []struct {
+		source   string
+		expected string
+	}{
+		{
+			source:   "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.",
+			expected: "Hello World!\n",
+		},
 	}
 
-	o := optimizer.NewOptimizer()
-	prog, err := o.Optimize(p)
-
-	t.Logf("%#v", prog)
+	for _, tc := range testCases {
+		t.Run(tc.source, func(t *testing.T) {
+			p, err := parser.Parse(strings.NewReader(tc.source))
+			if err != nil {
+				t.Fatal(err)
+			}
+			o := optimizer.NewOptimizer()
+			prog, _ := o.Optimize(p)
+			fmt.Printf("program Length: [%v]", len(p.Expressions))
+			fmt.Printf("optimize program Length:[%v], \nprogram:%#v", len(prog.Expressions), prog)
+		})
+	}
 }
