@@ -110,3 +110,36 @@ func TestParserError(t *testing.T) {
 		})
 	}
 }
+
+func TestParserPrinter(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "+-><.,[]",
+			expected: `+-><.,[]`,
+		},
+		{
+			input:    "+[->[+-<]>]",
+			expected: `+[->[+-<]>]`,
+		},
+		{
+			input:    "+!!!![->[+-<]>]",
+			expected: `+!!!![->[+-<]>]`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			program, err := parser.Parse(strings.NewReader(tc.input))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if program.String() != tc.expected {
+				t.Errorf("got: %v, expected: %v", program.String(), tc.expected)
+			}
+		})
+	}
+}
