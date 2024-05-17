@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,12 +17,19 @@ import (
 func TestInterpreter(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
+	f, _ := os.Open("../example/mandelbrot.bf")
+	buf, _ := io.ReadAll(f)
+	mand := string(buf)
 	testCases := []struct {
 		source   string
 		input    string
 		expected string
 	}{
+		{
+			source:   mand,
+			input:    "",
+			expected: "",
+		},
 		{
 			source:   "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.",
 			input:    "",

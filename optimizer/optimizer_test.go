@@ -2,6 +2,8 @@ package optimizer_test
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -10,12 +12,16 @@ import (
 )
 
 func TestOptimizer(t *testing.T) {
+	f, _ := os.Open("../example/mandelbrot.bf")
+	buf, _ := io.ReadAll(f)
+	mand := string(buf)
+	mand = "[[>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]"
 	testCases := []struct {
 		source   string
 		expected string
 	}{
 		{
-			source:   "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.",
+			source:   mand,
 			expected: "Hello World!\n",
 		},
 	}

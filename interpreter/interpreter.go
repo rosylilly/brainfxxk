@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/rosylilly/brainfxxk/ast"
 	"github.com/rosylilly/brainfxxk/optimizer"
@@ -16,19 +17,40 @@ var (
 	ErrMemoryOverflow = fmt.Errorf("memory overflow")
 )
 
+var (
+	WhileCounter = map[string]int{}
+)
+
+func formatWhileCounter() string {
+	s := ""
+	for key, value := range WhileCounter {
+		k := fmt.Sprintf("%s: %d", key, value)
+		//TODO コード中に謎の改行があるので除去したいs
+		s += strings.ReplaceAll(k, "\n", "")
+		s += "\n"
+	}
+	return s
+}
+
 type StepCounter struct {
-	MOVE   int
-	CALC   int
-	Output int
-	Input  int
-	While  int
-	Other  int
+	MOVE      int
+	CALC      int
+	Output    int
+	Input     int
+	While     int
+	IncPt     int
+	DescPt    int
+	IntVal    int
+	DecVal    int
+	ZERORESET int
+	ZEROSHIFT int
+	Other     int
 }
 
 func (sc *StepCounter) String() string {
 	sum := sc.MOVE + sc.CALC + sc.Output + sc.Input + sc.While + sc.Other
-	return fmt.Sprintf("\n\n[Sum of Expr] %d\n[List of Expr] MOVE: %d, CALC: %d, Output: %d, Input: %d, While: %d, Other: %d",
-		sum, sc.MOVE, sc.CALC, sc.Output, sc.Input, sc.While, sc.Other)
+	return fmt.Sprintf("\n\n[Sum of Expr] %d\n[List of Expr] MOVE: %d, CALC: %d, IncPt: %d, DescPt: %d, IncVal: %d, DescVal: %d,  Output: %d, Input: %d, While: %d, ZERORESET: %d, Other: %d \n [Loops]: \n%s",
+		sum, sc.MOVE, sc.CALC, sc.IncPt, sc.DescPt, sc.IntVal, sc.DecVal, sc.Output, sc.Input, sc.While, sc.ZERORESET, sc.Other, formatWhileCounter())
 }
 
 type Interpreter struct {
@@ -107,10 +129,29 @@ func (i *Interpreter) runExpression(ctx context.Context, expr ast.Expression) er
 		b := i.Memory[i.Pointer]
 		if res := int(b) + e.Value; res >= 0 {
 			i.Memory[i.Pointer] = byte(res)
-		} else {
-			return fmt.Errorf("value negative")
 		}
 		i.Counter.CALC += 1
+
+	case *ast.ZERORESET:
+		if i.Pointer == len(i.Memory)-1 && i.Config.RaiseErrorOnOverflow {
+			return fmt.Errorf("%w: %d to pointer overflow, on %d:%d", ErrMemoryOverflow, i.Pointer, e.StartPos(), e.EndPos())
+		}
+		i.Memory[i.Pointer] = 0
+		i.Counter.ZERORESET += 1
+
+	case *ast.ZEROSHIFT:
+		if i.Pointer == len(i.Memory)-1 && i.Config.RaiseErrorOnOverflow {
+			return fmt.Errorf("%w: %d to pointer overflow, on %d:%d", ErrMemoryOverflow, i.Pointer, e.StartPos(), e.EndPos())
+		}
+		pt := i.Pointer
+		for {
+			pt += e.Leap
+			if i.Memory[pt] != 0 {
+				break
+			}
+		}
+		i.Pointer = pt
+		i.Counter.ZEROSHIFT += 1
 
 	case *ast.PointerIncrementExpression:
 		if i.Pointer == len(i.Memory)-1 && i.Config.RaiseErrorOnOverflow {
@@ -151,7 +192,9 @@ func (i *Interpreter) runExpression(ctx context.Context, expr ast.Expression) er
 		}
 		i.Memory[i.Pointer] = b[0]
 		i.Counter.Input += 1
+
 	case *ast.WhileExpression:
+		// WhileCounter[e.String()] += 1
 		for i.Memory[i.Pointer] != 0 {
 			if err := i.runExpressions(ctx, e.Body); err != nil {
 				return err

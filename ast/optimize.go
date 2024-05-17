@@ -49,3 +49,70 @@ func (e *CALC) Bytes() []byte {
 func (e *CALC) String() string {
 	return string(e.Bytes())
 }
+
+type ZERORESET struct {
+	Pos int
+}
+
+func (e *ZERORESET) StartPos() int {
+	return e.Pos
+}
+
+func (e *ZERORESET) EndPos() int {
+	return e.Pos
+}
+
+func (e *ZERORESET) Bytes() []byte {
+	return []byte{'0'}
+}
+
+func (e *ZERORESET) String() string {
+	return string(e.Bytes())
+}
+
+const (
+	ForwardDirection  = 1
+	BackwardDirection = -1
+)
+
+type ZEROSHIFT struct {
+	Pos  int
+	Leap int
+}
+
+func (e *ZEROSHIFT) StartPos() int {
+	return e.Pos
+}
+
+func (e *ZEROSHIFT) EndPos() int {
+	return e.Pos
+}
+
+func (e *ZEROSHIFT) Bytes() []byte {
+	return []byte{'S'}
+}
+
+func (e *ZEROSHIFT) String() string {
+	return string(e.Bytes())
+}
+
+type COPY struct {
+	Pos       int
+	CopyPlace []int
+}
+
+func (e *COPY) StartPos() int {
+	return e.Pos
+}
+
+func (e *COPY) EndPos() int {
+	return e.Pos
+}
+
+func (e *COPY) Bytes() []byte {
+	return []byte{'C'}
+}
+
+func (e *COPY) String() string {
+	return string(e.Bytes())
+}

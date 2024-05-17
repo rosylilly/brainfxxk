@@ -1,6 +1,8 @@
 package optimizer
 
-import "github.com/rosylilly/brainfxxk/ast"
+import (
+	"github.com/rosylilly/brainfxxk/ast"
+)
 
 type Optimizer struct {
 }
@@ -92,11 +94,65 @@ func (o *Optimizer) optimizeExpressions(exprs []ast.Expression) ([]ast.Expressio
 			}
 
 		case *ast.WhileExpression:
+			exprs := optExpr.(*ast.WhileExpression)
 			// 中に入って最適化
-			opBody, err := o.optimizeExpressions(optExpr.(*ast.WhileExpression).Body)
+			opBody, err := o.optimizeExpressions(exprs.Body)
 			if err != nil {
 				return nil, err
 			}
+			// ZERO RESET
+			if len(opBody) == 1 {
+				// - オペランドが入っていることをチェック
+				if calc, ok := opBody[0].(*ast.CALC); ok {
+					if calc.Value == -1 {
+						optExpr = &ast.ZERORESET{
+							Pos: exprs.StartPosition,
+						}
+					}
+					break
+				}
+
+				// ZERO SHIFT
+				// if mv, ok := opBody[0].(*ast.MOVE); ok {
+				// 	optExpr = &ast.ZEROSHIFT{
+				// 		Pos:  exprs.StartPosition,
+				// 		Leap: mv.Count,
+				// 	}
+				// 	break
+				// }
+
+			}
+
+			// COPY [->+<]
+			if len(opBody) >= 4 {
+				var plusPlace []int
+				// 最初がマイナスから始まっている
+				if calc, ok := opBody[0].(*ast.CALC); ok {
+					if calc.Value == -1 {
+						// > と　< の数が同じ
+						// ついでに+の位置を覚えておく
+						incptcnt := 0
+						descptcnt := 0
+						for _, exp := range opBody[1:] {
+							if ex, ok := exp.(*ast.MOVE); ok {
+								if ex.Count > 0 {
+									incptcnt += ex.Count
+									plusPlace = append(plusPlace, incptcnt)
+								} else {
+									descptcnt += ex.Count
+								}
+							}
+						}
+						if incptcnt == descptcnt {
+							
+						}
+						optExpr = &ast.COPY{
+							CopyPlace: plusPlace,
+						}
+					}
+				}
+			}
+
 			optExpr.(*ast.WhileExpression).Body = opBody
 		}
 
